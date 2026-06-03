@@ -1,34 +1,34 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from .forms import CustomUserCreationForm
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm
 from garage.models import Car, Review
+
+User = get_user_model()
+
 
 def register(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username')
-            messages.success(request, f'Аккаунт {username} создан! Теперь вы можете войти.')
+            messages.success(request, f'Аккаунт {username} создан!')
             return redirect('login')
     else:
-        form = CustomUserCreationForm()
+        form = UserCreationForm()
     return render(request, 'users/register.html', {'form': form})
+
 
 @login_required
 def profile(request, username=None):
-    """Личный кабинет пользователя"""
     if username:
         user = User.objects.get(username=username)
     else:
         user = request.user
     
-    # Получаем автомобили пользователя
     cars = Car.objects.filter(owner=user)
-    
-    # Получаем отзывы пользователя
     reviews = Review.objects.filter(author=user)
     
     context = {

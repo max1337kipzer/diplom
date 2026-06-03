@@ -4,7 +4,6 @@ from garage.models import Car
 
 
 class Post(models.Model):
-    """Пост в бортовом журнале"""
     title = models.CharField('Заголовок', max_length=200)
     content = models.TextField('Содержание')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Автор', related_name='posts')
@@ -27,11 +26,11 @@ class Post(models.Model):
 
 
 class Comment(models.Model):
-    """Комментарий к посту"""
     post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name='Пост', related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Автор', related_name='comments')
     text = models.TextField('Текст комментария')
     created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='Ответ на', related_name='replies')
 
     class Meta:
         verbose_name = 'Комментарий'
@@ -39,11 +38,12 @@ class Comment(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
+        if self.parent:
+            return f'Ответ от {self.author.username} на комментарий {self.parent.author.username}'
         return f'Комментарий от {self.author.username} к {self.post.title}'
 
 
 class Subscription(models.Model):
-    """Подписка пользователя на другого пользователя"""
     subscriber = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Подписчик', related_name='subscriptions_out')
     subscribed_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Автор', related_name='subscriptions_in')
     created_at = models.DateTimeField('Дата подписки', auto_now_add=True)
@@ -58,7 +58,6 @@ class Subscription(models.Model):
 
 
 class Notification(models.Model):
-    """Уведомление для пользователя"""
     NOTIFICATION_TYPES = [
         ('comment', 'Комментарий'),
         ('like', 'Лайк'),

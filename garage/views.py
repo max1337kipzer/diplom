@@ -1,26 +1,26 @@
-from django.shortcuts import render
-from .models import Car
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import models
+from django.http import JsonResponse
+from .models import Car, Review, CarBrand, CarModel, ReviewComment
+from .forms import CarForm
+from posts.models import Notification
+
 
 def car_list(request):
     cars = Car.objects.all()
     return render(request, 'garage/car_list.html', {'cars': cars})
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import Car, Review
+
 
 def car_detail(request, car_id):
-    """Детальная страница автомобиля"""
     car = get_object_or_404(Car, id=car_id)
     reviews = car.reviews.all()
     
-    # Средняя оценка
     if reviews.exists():
         avg_rating = sum(r.rating for r in reviews) / reviews.count()
     else:
         avg_rating = 0
-    
-    # Проверял ли пользователь уже лайкнул отзыв (пока не используем)
     
     context = {
         'car': car,
@@ -33,7 +33,6 @@ def car_detail(request, car_id):
 
 @login_required
 def add_review(request, car_id):
-    """Добавление отзыва об автомобиле"""
     car = get_object_or_404(Car, id=car_id)
     
     if request.method == 'POST':
@@ -47,7 +46,7 @@ def add_review(request, car_id):
                 text=text,
                 rating=int(rating)
             )
-            messages.success(request, 'Отзыв успешно добавлен!')
+            messages.success(request, 'Отзыв добавлен')
         else:
             messages.error(request, 'Заполните все поля')
         
@@ -56,16 +55,84 @@ def add_review(request, car_id):
     return redirect('car_detail', car_id=car.id)
 
 
+def search(request):
+    query = request.GET.get('q', '')
+    cars = Car.objects.filter(
+        models.Q(brand__name__icontains=query) |
+        models.Q(model__name__icontains=query) |
+        models.Q(owner__username__icontains=query) |
+        models.Q(color__icontains=query)
+    )
+    return render(request, 'garage/search.html', {'cars': cars, 'query': query})
+
+
 @login_required
-def like_review(request, review_id):
-    """Лайк отзыва"""
+def add_car(request):
+    if request.method == 'POST':
+        form = CarForm(request.POST, request.FILES)
+        if form.is_valid():
+            car = form.save(commit=False)
+            car.owner = request.user
+            car.save()
+            messages.success(request, f'Автомобиль {car.brand.name} {car.model.name} добавлен в гараж')
+            return redirect('profile')
+        else:
+            messages.error(request, 'Ошибка при добавлении автомобиля')
+    else:
+        form = CarForm()
+    
+    brands = CarBrand.objects.all()
+    return render(request, 'garage/add_car.html', {'form': form, 'brands': brands})
+
+
+def get_models(request):
+    brand_id = request.GET.get('brand_id')
+    if brand_id:
+        models_list = CarModel.objects.filter(brand_id=brand_id).values('id', 'name')
+        return JsonResponse(list(models_list), safe=False)
+    return JsonResponse([], safe=False)
+
+
+@login_required
+def add_review_comment(request, review_id):
+    """Добавление комментария к отзыву"""
     review = get_object_or_404(Review, id=review_id)
     
-    if request.user in review.likes.all():
-        review.likes.remove(request.user)
-        messages.info(request, 'Вы убрали лайк')
-    else:
-        review.likes.add(request.user)
-        messages.success(request, 'Вы поставили лайк')
+    if request.method == 'POST':
+        text = request.POST.get('text')
+        parent_id = request.POST.get('parent')
+        
+        if text:
+            comment = ReviewComment.objects.create(
+                review=review,
+                author=request.user,
+                text=text,
+                parent_id=parent_id if parent_id else None
+            )
+            messages.success(request, 'Комментарий добавлен')
+            
+            if request.user != review.author:
+                Notification.objects.create(
+                    user=review.author,
+                    notification_type='comment',
+                    text=f'{request.user.username} прокомментировал ваш отзыв'
+                )
+        else:
+            messages.error(request, 'Текст не может быть пустым')
     
     return redirect('car_detail', car_id=review.car.id)
+
+
+@login_required
+def like_review_comment(request, comment_id):
+    """Лайк комментария к отзыву"""
+    comment = get_object_or_404(ReviewComment, id=comment_id)
+    
+    if request.user in comment.likes.all():
+        comment.likes.remove(request.user)
+        messages.info(request, 'Лайк убран')
+    else:
+        comment.likes.add(request.user)
+        messages.success(request, 'Лайк поставлен')
+    
+    return redirect('car_detail', car_id=comment.review.car.id)

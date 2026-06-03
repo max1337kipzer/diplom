@@ -3,7 +3,6 @@ from django.conf import settings
 
 
 class CarBrand(models.Model):
-    """Марка автомобиля"""
     name = models.CharField('Название марки', max_length=100, unique=True)
 
     class Meta:
@@ -15,7 +14,6 @@ class CarBrand(models.Model):
 
 
 class CarModel(models.Model):
-    """Модель автомобиля (привязана к марке)"""
     brand = models.ForeignKey(CarBrand, on_delete=models.CASCADE, verbose_name='Марка', related_name='models')
     name = models.CharField('Название модели', max_length=100)
 
@@ -29,7 +27,6 @@ class CarModel(models.Model):
 
 
 class Car(models.Model):
-    """Автомобиль пользователя (в гараже)"""
     TRANSMISSION_CHOICES = [
         ('manual', 'Механика'),
         ('automatic', 'Автомат'),
@@ -43,7 +40,7 @@ class Car(models.Model):
         ('full', 'Полный'),
     ]
 
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Владелец', related_name='cars')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Владелец', related_name='cars', null=True, blank=True)
     brand = models.ForeignKey(CarBrand, on_delete=models.CASCADE, verbose_name='Марка')
     model = models.ForeignKey(CarModel, on_delete=models.CASCADE, verbose_name='Модель')
     year = models.IntegerField('Год выпуска')
@@ -62,8 +59,11 @@ class Car(models.Model):
         verbose_name_plural = 'Автомобили'
         ordering = ['-created_at']
 
+    def __str__(self):
+        return f'{self.brand.name} {self.model.name} ({self.year})'
+
+
 class Review(models.Model):
-    """Отзыв об автомобиле"""
     RATING_CHOICES = [
         (1, '★ 1'),
         (2, '★★ 2'),
@@ -90,6 +90,25 @@ class Review(models.Model):
     def total_likes(self):
         return self.likes.count()
 
+
+class ReviewComment(models.Model):
+    """Комментарий к отзыву"""
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, verbose_name='Отзыв', related_name='comments')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Автор', related_name='review_comments')
+    text = models.TextField('Текст комментария')
+    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='Ответ на', related_name='replies')
+    likes = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='liked_review_comments', verbose_name='Лайки')
+
+    class Meta:
+        verbose_name = 'Комментарий к отзыву'
+        verbose_name_plural = 'Комментарии к отзывам'
+        ordering = ['created_at']
+
     def __str__(self):
-        return f'{self.brand.name} {self.model.name} ({self.year}) - {self.owner.username}'
+        if self.parent:
+            return f'Ответ от {self.author.username} на комментарий {self.parent.author.username}'
+        return f'Комментарий от {self.author.username} к отзыву {self.review.id}'
     
+    def total_likes(self):
+        return self.likes.count()
