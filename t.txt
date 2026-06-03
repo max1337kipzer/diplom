@@ -1,0 +1,1 @@
+пароль от админа http://127.0.0.1:8000/admin/garage/carmodel/add/ max пароль maxmax
