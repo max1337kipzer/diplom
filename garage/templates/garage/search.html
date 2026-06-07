@@ -2,63 +2,145 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Поиск - Drive4</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск — Drive4</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f5f7fb;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .navbar {
+            background-color: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 0;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #1a202c;
+            text-decoration: none;
+        }
+        .search-header {
+            background-color: #f8fafc;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .search-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        .car-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            height: 100%;
+        }
+        .car-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .car-image {
+            height: 180px;
+            object-fit: cover;
+            width: 100%;
+        }
+        .footer {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 2rem;
+            color: #a0aec0;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">Drive4</a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'feed' %}">📰 Лента</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'notifications' %}">🔔 Уведомления</a></li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">{{ user.username }}</a></li>
-                        <li class="nav-item">
-                            <form method="post" action="{% url 'logout' %}" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link nav-link">Выйти</button>
-                            </form>
-                        </li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Вход</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Регистрация</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
 
-    <div class="container mt-4">
-        <h2>Результаты поиска: "{{ query }}"</h2>
-        {% for car in cars %}
-            <div class="card mb-3">
-                <div class="row g-0">
-                    <div class="col-md-4">
+<nav class="navbar">
+    <div class="container">
+        <a class="navbar-brand" href="/">Drive4</a>
+        <div class="d-flex gap-3 align-items-center">
+            <form method="get" action="{% url 'search' %}" class="d-flex">
+                <input type="text" name="q" class="form-control form-control-sm me-2" placeholder="Поиск..." style="width: 200px;" value="{{ query }}">
+                <button type="submit" class="btn btn-sm btn-primary">Найти</button>
+            </form>
+            <a class="nav-link" href="{% url 'compare_cars' %}">Сравнение</a>
+            {% if user.is_authenticated %}
+                <a class="nav-link" href="{% url 'profile' %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link nav-link" style="background: none; border: none;">Выйти</button>
+                </form>
+            {% else %}
+                <a class="nav-link" href="{% url 'login' %}">Вход</a>
+                <a class="nav-link" href="{% url 'register' %}">Регистрация</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<div class="search-header">
+    <div class="container text-center">
+        <h1><i class="fas fa-search"></i> Результаты поиска</h1>
+        {% if query %}
+            <p class="mb-0">По запросу <strong>"{{ query }}"</strong> найдено <strong>{{ count }}</strong> автомобилей</p>
+        {% else %}
+            <p>Введите название марки, модели или владельца</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    {% if query %}
+        <div class="row">
+            {% for car in cars %}
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="car-card">
                         {% if car.photo %}
-                            <img src="{{ car.photo.url }}" class="img-fluid rounded-start" alt="{{ car.brand.name }} {{ car.model.name }}" style="height: 150px; object-fit: cover; width: 100%;">
+                            <img src="{{ car.photo.url }}" class="car-image" alt="{{ car.brand.name }} {{ car.model.name }}">
                         {% else %}
-                            <img src="https://placehold.co/400x200/edf2f7/718096?text=Нет+фото" class="img-fluid rounded-start" alt="Нет фото">
+                            <div class="car-image bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-car fa-3x text-muted"></i>
+                            </div>
                         {% endif %}
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ car.brand.name }} {{ car.model.name }} ({{ car.year }})</h5>
-                            <p class="card-text">Цвет: {{ car.color|default:"Не указан" }} | Владелец: {{ car.owner.username }}</p>
-                            <a href="{% url 'car_detail' car.id %}" class="btn btn-primary btn-sm">Подробнее</a>
+                        <div class="p-3">
+                            <h5 class="fw-bold mb-1">{{ car.brand.name }} {{ car.model.name }}</h5>
+                            <p class="text-muted small mb-2">{{ car.year }} г.</p>
+                            <p class="small mb-2"><i class="fas fa-user"></i> {{ car.owner.username|default:"—" }}</p>
+                            <a href="{% url 'car_detail' car.id %}" class="btn btn-primary btn-sm w-100">Подробнее</a>
                         </div>
                     </div>
                 </div>
-            </div>
-        {% empty %}
-            <div class="alert alert-info">Ничего не найдено</div>
-        {% endfor %}
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-exclamation-triangle"></i> Ничего не найдено. Попробуйте другой запрос.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <p>Введите запрос в строку поиска выше</p>
+        </div>
+    {% endif %}
+    
+    <div class="text-center mt-3">
+        <a href="{% url 'car_list' %}" class="btn btn-outline-secondary">← Вернуться на главную</a>
     </div>
+</div>
 
-    <footer class="bg-light text-center py-3 mt-4">
+<footer class="footer">
+    <div class="container">
         <p>© 2026 Drive4 — дипломный проект</p>
-    </footer>
+    </div>
+</footer>
+
 </body>
 </html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сравнение автомобилей — Drive4</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fb;
+            color: #1a202c;
+        }
+        .navbar {
+            background-color: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 0;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #1a202c;
+            text-decoration: none;
+        }
+        .navbar-brand:hover {
+            color: #3182ce;
+        }
+        .nav-link {
+            color: #4a5568;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            color: #3182ce;
+        }
+        .btn-logout {
+            background: none;
+            border: none;
+            color: #4a5568;
+            cursor: pointer;
+        }
+        .compare-header {
+            background-color: #f8fafc;
+            color: #1a202c;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .compare-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .compare-header p {
+            color: #4a5568;
+        }
+        .card-selector {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .btn-primary {
+            background: #3182ce;
+            border: none;
+            border-radius: 10px;
+        }
+        .btn-primary:hover {
+            background: #2c5282;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            border: none;
+            border-radius: 10px;
+            color: #4a5568;
+        }
+        .compare-table {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        .compare-table th {
+            background: #f8fafc;
+            width: 180px;
+            font-weight: 600;
+        }
+        .car-image {
+            max-height: 120px;
+            object-fit: contain;
+            width: 100%;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+        }
+        .rating-stars {
+            color: #fbbf24;
+        }
+        .footer {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="container">
+        <a class="navbar-brand" href="/">Drive4</a>
+        <div class="d-flex gap-3">
+            <a class="nav-link" href="/">Главная</a>
+            <a class="nav-link" href="{% url 'compare_cars' %}" style="color: #e94560;">Сравнение</a>
+            {% if user.is_authenticated %}
+                <a class="nav-link" href="{% url 'profile' %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout nav-link">Выйти</button>
+                </form>
+            {% else %}
+                <a class="nav-link" href="{% url 'login' %}">Вход</a>
+                <a class="nav-link" href="{% url 'register' %}">Регистрация</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<div class="compare-header">
+    <div class="container text-center">
+        <h1><i class="fas fa-chart-line"></i> Сравнение автомобилей</h1>
+        <p>Выберите до 3 автомобилей и сравните их характеристики</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Форма выбора автомобилей -->
+    <div class="card-selector">
+        <form method="get" action="{% url 'compare_cars' %}" id="compareForm">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Автомобиль 1</label>
+                    <select name="car_ids" class="form-select" id="car1">
+                        <option value="">— Выберите автомобиль —</option>
+                        {% for car in all_cars %}
+                            <option value="{{ car.id }}" {% if car.id|stringformat:"i" == car_ids.0|stringformat:"i" %}selected{% endif %}>
+                                {{ car.brand.name }} {{ car.model.name }} ({{ car.year }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Автомобиль 2</label>
+                    <select name="car_ids" class="form-select" id="car2">
+                        <option value="">— Выберите автомобиль —</option>
+                        {% for car in all_cars %}
+                            <option value="{{ car.id }}" {% if car.id|stringformat:"i" == car_ids.1|stringformat:"i" %}selected{% endif %}>
+                                {{ car.brand.name }} {{ car.model.name }} ({{ car.year }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Автомобиль 3 (опционально)</label>
+                    <select name="car_ids" class="form-select" id="car3">
+                        <option value="">— Выберите автомобиль —</option>
+                        {% for car in all_cars %}
+                            <option value="{{ car.id }}" {% if car.id|stringformat:"i" == car_ids.2|stringformat:"i" %}selected{% endif %}>
+                                {{ car.brand.name }} {{ car.model.name }} ({{ car.year }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4 text-center">
+                <button type="submit" class="btn btn-primary px-4">Сравнить</button>
+                <a href="{% url 'compare_cars' %}" class="btn btn-secondary ms-2 px-4">Очистить</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Результаты сравнения -->
+    {% if cars %}
+        <div class="table-responsive">
+            <table class="table table-bordered compare-table">
+                <thead>
+                    <tr class="text-center">
+                        <th style="width: 180px;">Характеристика</th>
+                        {% for car in cars %}
+                            <th style="min-width: 220px;">
+                                {% if car.photo %}
+                                    <img src="{{ car.photo.url }}" class="car-image mb-2" alt="{{ car.brand.name }} {{ car.model.name }}">
+                                {% else %}
+                                    <div class="car-image bg-light d-flex align-items-center justify-content-center mb-2">
+                                        <i class="fas fa-car fa-3x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="fw-bold">{{ car.brand.name }} {{ car.model.name }}</div>
+                                <div class="small text-muted">{{ car.year }} г.</div>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><th>Владелец</th>{% for car in cars %}<td class="text-center">{{ car.owner.username|default:"—" }}</td>{% endfor %}</tr>
+                    <tr><th>Тип кузова</th>{% for car in cars %}<td class="text-center">{{ car.get_body_type_display|default:"—" }}</td>{% endfor %}</tr>
+                    <tr><th>Цвет</th>{% for car in cars %}<td class="text-center">{{ car.color|default:"—" }}</td>{% endfor %}</tr>
+                    <tr><th>Госномер</th>{% for car in cars %}<td class="text-center">{{ car.license_plate|default:"—" }}</td>{% endfor %}</tr>
+                    <tr><th>Объём двигателя</th>{% for car in cars %}<td class="text-center">{{ car.engine_volume|default:"—" }} л</td>{% endfor %}</tr>
+                    <tr><th>Мощность</th>{% for car in cars %}<td class="text-center">{{ car.horsepower|default:"—" }} л.с.</td>{% endfor %}</tr>
+                    <tr><th>Тип топлива</th>{% for car in cars %}<td class="text-center">{{ car.get_fuel_type_display|default:"—" }}</td>{% endfor %}</tr>
+                    <tr><th>Коробка передач</th>{% for car in cars %}<td class="text-center">{{ car.get_transmission_display|default:"—" }}</td>{% endfor %}</tr>
+                    <tr><th>Привод</th>{% for car in cars %}<td class="text-center">{{ car.get_drive_display|default:"—" }}</td>{% endfor %}</tr>
+                    <tr><th>Разгон 0-100 км/ч</th>{% for car in cars %}<td class="text-center">{{ car.acceleration|default:"—" }} сек</td>{% endfor %}</tr>
+                    <tr><th>Макс. скорость</th>{% for car in cars %}<td class="text-center">{{ car.top_speed|default:"—" }} км/ч</td>{% endfor %}</tr>
+                    <tr><th>Расход топлива</th>{% for car in cars %}<td class="text-center">{{ car.fuel_consumption|default:"—" }} л/100 км</td>{% endfor %}</tr>
+                    <tr><th>Объём багажника</th>{% for car in cars %}<td class="text-center">{{ car.trunk_volume|default:"—" }} л</td>{% endfor %}</tr>
+                    <tr><th>Длина</th>{% for car in cars %}<td class="text-center">{{ car.length|default:"—" }} мм</td>{% endfor %}</tr>
+                    <tr><th>Ширина</th>{% for car in cars %}<td class="text-center">{{ car.width|default:"—" }} мм</td>{% endfor %}</tr>
+                    <tr><th>Высота</th>{% for car in cars %}<td class="text-center">{{ car.height|default:"—" }} мм</td>{% endfor %}</tr>
+                    <tr><th>Снаряжённая масса</th>{% for car in cars %}<td class="text-center">{{ car.weight|default:"—" }} кг</td>{% endfor %}</tr>
+                    <tr>
+                        <th>Рейтинг</th>
+                        {% for car in cars %}
+                            <td class="text-center">
+                                {% if car.avg_rating > 0 %}
+                                    <span class="fw-bold">{{ car.avg_rating|floatformat:1 }}</span> / 5
+                                    <div class="rating-stars mt-1">
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= car.avg_rating|floatformat:"0" %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted">({{ car.reviews.count }})</small>
+                                {% else %}
+                                    <span class="text-muted">Нет отзывов</span>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                    <tr><th>Ссылка</th>{% for car in cars %}<td class="text-center"><a href="{% url 'car_detail' car.id %}" class="btn btn-sm btn-outline-primary">Подробнее</a></td>{% endfor %}</tr>
+                </tbody>
+            </table>
+        </div>
+    {% elif car_ids %}
+        <div class="alert alert-warning text-center">Выберите хотя бы один автомобиль для сравнения</div>
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> Выберите автомобили из списков выше и нажмите «Сравнить»
+        </div>
+    {% endif %}
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <p>© 2026 Drive4 — дипломный проект</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const selects = document.querySelectorAll('select[name="car_ids"]');
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            const selectedValues = Array.from(selects).map(s => s.value).filter(v => v);
+            const unique = new Set(selectedValues);
+            if (selectedValues.length !== unique.size) {
+                alert('Нельзя выбрать один и тот же автомобиль дважды');
+                this.value = '';
+            }
+        });
+    });
+</script>
+</body>
+</html>

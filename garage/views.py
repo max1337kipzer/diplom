@@ -6,6 +6,8 @@ from django.http import JsonResponse
 from .models import Car, Review, CarBrand, CarModel, ReviewComment
 from .forms import CarForm
 from posts.models import Notification
+from django.db.models import Q
+
 
 
 def car_list(request):
@@ -136,3 +138,48 @@ def like_review_comment(request, comment_id):
         messages.success(request, 'Лайк поставлен')
     
     return redirect('car_detail', car_id=comment.review.car.id)
+def compare_cars(request):
+    """Сравнение нескольких автомобилей"""
+    car_ids = request.GET.getlist('car_ids')
+    
+    # Очищаем список от пустых значений и преобразуем в числа
+    car_ids = [int(cid) for cid in car_ids if cid and cid.strip()]
+    
+    # Убираем дубликаты и ограничиваем максимум 3
+    car_ids = list(set(car_ids))[:3]
+    
+    cars = Car.objects.filter(id__in=car_ids) if car_ids else []
+    all_cars = Car.objects.select_related('brand', 'model').all()
+    
+    # Считаем средний рейтинг для каждого автомобиля
+    for car in cars:
+        reviews = car.reviews.all()
+        if reviews:
+            car.avg_rating = sum(r.rating for r in reviews) / reviews.count()
+        else:
+            car.avg_rating = 0
+    
+    context = {
+        'cars': cars,
+        'all_cars': all_cars,
+        'car_ids': car_ids,
+    }
+    return render(request, 'garage/compare_cars.html', context)
+def search(request):
+    """Поиск автомобилей по марке, модели или владельцу"""
+    query = request.GET.get('q', '').strip()
+    if query:
+        cars = Car.objects.filter(
+            models.Q(brand__name__icontains=query) |
+            models.Q(model__name__icontains=query) |
+            models.Q(owner__username__icontains=query)
+        )
+    else:
+        cars = Car.objects.none()
+    
+    context = {
+        'cars': cars,
+        'query': query,
+        'count': cars.count(),
+    }
+    return render(request, 'garage/search.html', context)

@@ -40,6 +40,25 @@ class Car(models.Model):
         ('full', 'Полный'),
     ]
 
+    BODY_TYPE_CHOICES = [
+        ('sedan', 'Седан'),
+        ('hatchback', 'Хэтчбек'),
+        ('suv', 'Внедорожник/SUV'),
+        ('wagon', 'Универсал'),
+        ('coupe', 'Купе'),
+        ('convertible', 'Кабриолет'),
+        ('minivan', 'Минивэн'),
+        ('pickup', 'Пикап'),
+    ]
+
+    FUEL_TYPE_CHOICES = [
+        ('petrol', 'Бензин'),
+        ('diesel', 'Дизель'),
+        ('electric', 'Электричество'),
+        ('hybrid', 'Гибрид'),
+        ('plug_in_hybrid', 'Подзаряжаемый гибрид'),
+    ]
+
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Владелец', related_name='cars', null=True, blank=True)
     brand = models.ForeignKey(CarBrand, on_delete=models.CASCADE, verbose_name='Марка')
     model = models.ForeignKey(CarModel, on_delete=models.CASCADE, verbose_name='Модель')
@@ -47,10 +66,23 @@ class Car(models.Model):
     vin = models.CharField('VIN номер', max_length=17, blank=True, null=True)
     license_plate = models.CharField('Госномер', max_length=20, blank=True, null=True)
     color = models.CharField('Цвет', max_length=50, blank=True, null=True)
+    
+    # Новые поля
+    body_type = models.CharField('Тип кузова', max_length=50, blank=True, null=True, choices=BODY_TYPE_CHOICES)
+    fuel_type = models.CharField('Тип топлива', max_length=30, blank=True, null=True, choices=FUEL_TYPE_CHOICES)
     engine_volume = models.DecimalField('Объём двигателя (л)', max_digits=3, decimal_places=1, blank=True, null=True)
     horsepower = models.IntegerField('Мощность (л.с.)', blank=True, null=True)
     transmission = models.CharField('Коробка передач', max_length=20, choices=TRANSMISSION_CHOICES, blank=True, null=True)
     drive = models.CharField('Привод', max_length=20, choices=DRIVE_CHOICES, blank=True, null=True)
+    acceleration = models.DecimalField('Разгон 0-100 км/ч (сек)', max_digits=4, decimal_places=1, blank=True, null=True)
+    top_speed = models.IntegerField('Максимальная скорость (км/ч)', blank=True, null=True)
+    fuel_consumption = models.DecimalField('Расход топлива (л/100 км)', max_digits=4, decimal_places=1, blank=True, null=True)
+    trunk_volume = models.IntegerField('Объём багажника (л)', blank=True, null=True)
+    length = models.IntegerField('Длина (мм)', blank=True, null=True)
+    width = models.IntegerField('Ширина (мм)', blank=True, null=True)
+    height = models.IntegerField('Высота (мм)', blank=True, null=True)
+    weight = models.IntegerField('Снаряжённая масса (кг)', blank=True, null=True)
+    
     photo = models.ImageField('Фото автомобиля', upload_to='cars/', blank=True, null=True)
     created_at = models.DateTimeField('Дата добавления', auto_now_add=True)
 

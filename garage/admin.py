@@ -17,9 +17,37 @@ class CarModelAdmin(admin.ModelAdmin):
 
 @admin.register(Car)
 class CarAdmin(admin.ModelAdmin):
-    list_display = ('owner', 'brand', 'model', 'year', 'license_plate')
-    search_fields = ('owner__username', 'vin', 'license_plate')
-    list_filter = ('brand', 'year', 'transmission', 'drive')
+    list_display = (
+        'id', 'owner', 'brand', 'model', 'year', 'color', 'engine_volume', 
+        'horsepower', 'transmission', 'drive', 'body_type', 'fuel_type',
+        'acceleration', 'top_speed', 'fuel_consumption', 'trunk_volume',
+        'length', 'width', 'height', 'weight', 'license_plate', 'vin'
+    )
+    list_filter = (
+        'brand', 'year', 'transmission', 'drive', 'body_type', 'fuel_type'
+    )
+    search_fields = (
+        'owner__username', 'brand__name', 'model__name', 'vin', 'license_plate'
+    )
+    list_editable = ('color', 'engine_volume', 'horsepower')
+    list_per_page = 20
+    fieldsets = (
+        ('Владелец и идентификация', {
+            'fields': ('owner', 'brand', 'model', 'year', 'vin', 'license_plate')
+        }),
+        ('Внешний вид', {
+            'fields': ('color', 'body_type', 'photo')
+        }),
+        ('Двигатель и трансмиссия', {
+            'fields': ('engine_volume', 'horsepower', 'fuel_type', 'transmission', 'drive')
+        }),
+        ('Динамика и расход', {
+            'fields': ('acceleration', 'top_speed', 'fuel_consumption')
+        }),
+        ('Габариты и масса', {
+            'fields': ('length', 'width', 'height', 'weight', 'trunk_volume')
+        }),
+    )
 
 
 @admin.register(Review)

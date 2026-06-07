@@ -10,4 +10,6 @@ urlpatterns = [
     path('get_models/', views.get_models, name='get_models'),
     path('review/<int:review_id>/comment/add/', views.add_review_comment, name='add_review_comment'),
     path('review_comment/<int:comment_id>/like/', views.like_review_comment, name='like_review_comment'),
+    path('compare/', views.compare_cars, name='compare_cars'),
+    path('search/', views.search, name='search'),
 ]

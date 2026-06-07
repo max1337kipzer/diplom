@@ -79,11 +79,12 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        .car-image {
-            height: 120px;
-            object-fit: cover;
-            width: 100%;
-        }
+      .car-image {
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
+    width: 100%;
+}
         .btn-outline-sm {
             border: 1px solid #e2e8f0;
             border-radius: 6px;
@@ -126,43 +127,31 @@
     </nav>
 
     <div class="profile-header">
-        <div class="container">
-            <div class="row align-items-center text-center">
-                <div class="col-md-4">
-                    <div class="avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h3>{{ profile_user.username }}</h3>
-                    <p class="text-muted">На сайте с {{ profile_user.date_joined|date:"d.m.Y" }}</p>
+ <div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Аватар и информация о пользователе -->
+            <div class="text-center">
+                <div class="avatar">
+                    <i class="fas fa-user fa-3x"></i>
                 </div>
-                <div class="col-md-8">
-                    <div class="row">
-                        <div class="col-4">
-                            <div class="stat-box">
-                                <div class="stat-number">{{ cars_count }}</div>
-                                <div class="text-muted small">Автомобилей</div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="stat-box">
-                                <div class="stat-number">{{ reviews_count }}</div>
-                                <div class="text-muted small">Отзывов</div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="stat-box">
-                                <div class="stat-number">0</div>
-                                <div class="text-muted small">Постов</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <h3>{{ profile_user.username }}</h3>
+                <p class="text-muted">На сайте с {{ profile_user.date_joined|date:"d.m.Y" }}</p>
             </div>
         </div>
+        <div class="col-md-8">
+            <!-- Кнопка добавления автомобиля - по центру -->
+            <div class="text-center mb-4">
+                <a href="{% url 'add_car' %}" class="btn btn-secondary">+ Добавить автомобиль</a>
+            </div>
+            
+            <!-- Список автомобилей пользователя -->
+            <h4>Мои автомобили</h4>
+            {% for car in cars %}
+                <!-- карточки автомобилей -->
+            {% endfor %}
+        </div>
     </div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>Мои автомобили</h4>
-    <a href="{% url 'add_car' %}" class="btn btn-primary btn-sm">+ Добавить автомобиль</a>
 </div>
 
     <div class="container mt-4">
