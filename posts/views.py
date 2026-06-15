@@ -3,12 +3,26 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from .models import Post, Comment, Subscription, Notification
+from garage.models import Review
+from garage.models import Review, ReviewComment
 
 User = get_user_model()
+
+@login_required
+def feed(request):
+    """Лента новостей — посты пользователей, на которых подписан текущий пользователь"""
+    subscribed_users = request.user.subscriptions_out.values_list('subscribed_to', flat=True)
+    posts = Post.objects.filter(author__id__in=subscribed_users).select_related('car', 'author').order_by('-created_at')
+    
+    for post in posts:
+        post.comments_count = post.comments.count()
+    
+    return render(request, 'posts/feed.html', {'posts': posts})
 
 
 @login_required
 def add_comment(request, post_id):
+    """Добавление комментария к посту"""
     post = get_object_or_404(Post, id=post_id)
     
     if request.method == 'POST':
@@ -38,6 +52,7 @@ def add_comment(request, post_id):
 
 @login_required
 def like_post(request, post_id):
+    """Лайк поста"""
     post = get_object_or_404(Post, id=post_id)
     
     if request.user in post.likes.all():
@@ -59,6 +74,7 @@ def like_post(request, post_id):
 
 @login_required
 def toggle_subscription(request, user_id):
+    """Подписка/отписка от пользователя"""
     subscribed_to = get_object_or_404(User, id=user_id)
     
     if request.user == subscribed_to:
@@ -85,7 +101,7 @@ def toggle_subscription(request, user_id):
 
 @login_required
 def like_review(request, review_id):
-    from garage.models import Review
+    """Лайк отзыва"""
     review = get_object_or_404(Review, id=review_id)
     
     if request.user in review.likes.all():
@@ -99,14 +115,24 @@ def like_review(request, review_id):
 
 
 @login_required
-def feed(request):
-    subscribed_users = request.user.subscriptions_out.values_list('subscribed_to', flat=True)
-    posts = Post.objects.filter(author__id__in=subscribed_users).order_by('-created_at')
-    return render(request, 'posts/feed.html', {'posts': posts})
-
-
-@login_required
 def notifications(request):
+    """Страница уведомлений"""
     notifications_list = request.user.notifications.order_by('-created_at')
     notifications_list.update(is_read=True)
     return render(request, 'posts/notifications.html', {'notifications': notifications_list})
+
+
+@login_required
+def profile_subscribers(request, username):
+    """Список подписчиков пользователя"""
+    user = get_object_or_404(User, username=username)
+    subscribers = user.subscriptions_in.all()
+    return render(request, 'users/subscribers.html', {'profile_user': user, 'subscribers': subscribers})
+
+
+@login_required
+def profile_subscriptions(request, username):
+    """Список подписок пользователя"""
+    user = get_object_or_404(User, username=username)
+    subscriptions = user.subscriptions_out.all()
+    return render(request, 'users/subscriptions.html', {'profile_user': user, 'subscriptions': subscriptions})

@@ -9,7 +9,8 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #fafbfc;
+            background-color: #f5f7fb;
+            color: #1a202c;
         }
         .navbar {
             background-color: white;
@@ -17,8 +18,8 @@
             padding: 1rem 0;
         }
         .navbar-brand {
-            font-size: 1.5rem;
             font-weight: 700;
+            font-size: 1.5rem;
             color: #1a202c;
             text-decoration: none;
         }
@@ -34,17 +35,17 @@
             border: none;
             color: #4a5568;
             cursor: pointer;
-            font-weight: 500;
         }
         .profile-header {
             background: white;
             border-bottom: 1px solid #e2e8f0;
             padding: 2rem 0;
+            margin-bottom: 2rem;
         }
         .avatar {
-            width: 80px;
-            height: 80px;
-            background: #edf2f7;
+            width: 100px;
+            height: 100px;
+            background-color: #edf2f7;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -52,14 +53,14 @@
             margin: 0 auto 1rem;
         }
         .avatar i {
-            font-size: 2.5rem;
+            font-size: 3rem;
             color: #a0aec0;
         }
         .stat-box {
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 1rem;
+            padding: 0.75rem;
             text-align: center;
         }
         .stat-number {
@@ -67,175 +68,178 @@
             font-weight: 700;
             color: #3182ce;
         }
-        .car-card, .review-card {
+        .stat-label {
+            font-size: 0.8rem;
+            color: #4a5568;
+        }
+        .btn-subscribe {
+            border-radius: 30px;
+            padding: 0.3rem 1.5rem;
+        }
+        .car-card {
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             overflow: hidden;
-            transition: all 0.2s;
-            margin-bottom: 1rem;
+            transition: transform 0.2s;
+            height: 100%;
         }
-        .car-card:hover, .review-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        .car-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
-      .car-image {
-    height: auto;
-    max-height: 200px;
-    object-fit: contain;
-    width: 100%;
-}
-        .btn-outline-sm {
+        .car-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .review-card {
+            background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.875rem;
-            color: #4a5568;
-            text-decoration: none;
-        }
-        .btn-outline-sm:hover {
-            border-color: #3182ce;
-            color: #3182ce;
-            background-color: #ebf8ff;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
         }
         .footer {
             background: white;
             border-top: 1px solid #e2e8f0;
-            padding: 2rem 0;
-            margin-top: 3rem;
+            padding: 1.5rem;
             text-align: center;
+            margin-top: 2rem;
             color: #a0aec0;
-            font-size: 0.875rem;
         }
-        /* Рамка для фото в профиле */
-.profile-car-image {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 10px;
-    background-color: #f8f9fa;
-    border: 1px solid #e2e8f0;
-}
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <a class="navbar-brand" href="/">Drive4</a>
-            <div class="d-flex align-items-center gap-3">
-                <a class="nav-link" href="/">Главная</a>
-                {% if user.is_authenticated %}
-                    <a class="nav-link" href="{% url 'profile' %}">{{ user.username }}</a>
-                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-logout nav-link">Выйти</button>
-                    </form>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
 
-    <div class="profile-header">
- <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-4">
-            <!-- Аватар и информация о пользователе -->
-            <div class="text-center">
+<nav class="navbar">
+    <div class="container">
+        <a class="navbar-brand" href="/">Drive4</a>
+        <div class="d-flex gap-3">
+            <a class="nav-link" href="/">Главная</a>
+            <a class="nav-link" href="{% url 'compare_cars' %}">Сравнение</a>
+            <a class="nav-link" href="{% url 'notifications' %}"> Уведомления</a>
+            {% if user.is_authenticated %}
+                <a class="nav-link" href="{% url 'profile' %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout nav-link">Выйти</button>
+                </form>
+            {% else %}
+                <a class="nav-link" href="{% url 'login' %}">Вход</a>
+                <a class="nav-link" href="{% url 'register' %}">Регистрация</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<div class="profile-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
                 <div class="avatar">
-                    <i class="fas fa-user fa-3x"></i>
+                    <i class="fas fa-user"></i>
                 </div>
                 <h3>{{ profile_user.username }}</h3>
-                <p class="text-muted">На сайте с {{ profile_user.date_joined|date:"d.m.Y" }}</p>
+                <p class="text-muted small">На сайте с {{ profile_user.date_joined|date:"d.m.Y" }}</p>
             </div>
-        </div>
-        <div class="col-md-8">
-            <!-- Кнопка добавления автомобиля - по центру -->
-            <div class="text-center mb-4">
-                <a href="{% url 'add_car' %}" class="btn btn-secondary">+ Добавить автомобиль</a>
+            <div class="col-md-6">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="stat-box">
+                            <div class="stat-number">{{ cars_count }}</div>
+                            <div class="stat-label">автомобилей</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-box">
+                            <div class="stat-number">{{ reviews_count }}</div>
+                            <div class="stat-label">отзывов</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-box">
+                            <div class="stat-number">{{ profile_user.subscriptions_in.count }}</div>
+                            <div class="stat-label">подписчиков</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <!-- Список автомобилей пользователя -->
-            <h4>Мои автомобили</h4>
-            {% for car in cars %}
-                <!-- карточки автомобилей -->
-            {% endfor %}
+            <div class="col-md-3 text-center">
+                {% if user.is_authenticated and user != profile_user %}
+                    <form method="post" action="{% url 'toggle_subscription' profile_user.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-subscribe">
+                            Подписаться
+                        </button>
+                    </form>
+                {% endif %}
+                {% if is_own_profile %}
+                    <a href="{% url 'add_car' %}" class="btn btn-success btn-subscribe mt-2">+ Добавить автомобиль</a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
 
-    <div class="container mt-4">
+<div class="container">
+    <h4 class="mb-3"><i class="fas fa-car"></i> Автомобили ({{ cars_count }})</h4>
+    {% if cars %}
         <div class="row">
-            <div class="col-12 mb-4">
-                <h4 class="fw-semibold">Автомобили</h4>
-                <hr class="mb-3">
-            </div>
             {% for car in cars %}
-                <div class="col-md-4">
+                <div class="col-md-4 col-sm-6 mb-3">
                     <div class="car-card">
                         {% if car.photo %}
                             <img src="{{ car.photo.url }}" class="car-image" alt="{{ car.brand.name }} {{ car.model.name }}">
                         {% else %}
-                            <img src="https://placehold.co/400x200/edf2f7/718096?text=No+Image" class="car-image" alt="Нет фото">
-                        {% endif %}
-                        <div class="p-3">
-                            <h5 class="fw-semibold mb-1">{{ car.brand.name }} {{ car.model.name }}</h5>
-                            <p class="small text-muted mb-2">{{ car.year }} г.</p>
-                            <a href="{% url 'car_detail' car.id %}" class="btn-outline-sm">Подробнее</a>
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-light border p-4 text-center">
-                        Нет автомобилей в гараже
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-12 mb-4">
-                <h4 class="fw-semibold">Отзывы</h4>
-                <hr class="mb-3">
-            </div>
-            {% for review in reviews %}
-                <div class="col-12">
-                    <div class="review-card p-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ review.car.brand.name }} {{ review.car.model.name }}</strong>
-                                <div class="small text-warning">
-                                    {% for i in "12345"|make_list %}
-                                        {% if forloop.counter <= review.rating %}
-                                            <i class="fas fa-star"></i>
-                                        {% else %}
-                                            <i class="far fa-star"></i>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
+                            <div class="car-image bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-car fa-2x text-muted"></i>
                             </div>
-                            <small class="text-muted">{{ review.created_at|date:"d.m.Y" }}</small>
+                        {% endif %}
+                        <div class="p-2">
+                            <h6 class="fw-bold mb-0">{{ car.brand.name }} {{ car.model.name }}</h6>
+                            <small class="text-muted">{{ car.year }} г.</small>
+                            <div class="mt-2">
+                                <a href="{% url 'car_detail' car.id %}" class="btn btn-sm btn-outline-primary w-100">Подробнее</a>
+                            </div>
                         </div>
-                        <p class="mt-2 mb-0 small">{{ review.text|truncatechars:120 }}</p>
-                        <div class="mt-2">
-                            <a href="{% url 'car_detail' review.car.id %}" class="btn-outline-sm">К автомобилю</a>
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-light border p-4 text-center">
-                        Нет отзывов
                     </div>
                 </div>
             {% endfor %}
         </div>
-    </div>
+    {% else %}
+        <div class="alert alert-secondary">Нет автомобилей в гараже</div>
+    {% endif %}
 
-    <footer class="footer">
-        <div class="container">
-            <p>© 2026 Drive4 — дипломный проект</p>
-        </div>
-    </footer>
+    <h4 class="mb-3 mt-4"><i class="fas fa-star"></i> Отзывы ({{ reviews_count }})</h4>
+    {% if reviews %}
+        {% for review in reviews %}
+            <div class="review-card">
+                <div class="d-flex justify-content-between">
+                    <strong>{{ review.car.brand.name }} {{ review.car.model.name }}</strong>
+                    <div class="text-warning">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <p class="mt-2 mb-1">{{ review.text|truncatechars:150 }}</p>
+                <small class="text-muted">{{ review.created_at|date:"d.m.Y" }}</small>
+                <div class="mt-2">
+                    <a href="{% url 'car_detail' review.car.id %}" class="btn btn-sm btn-link">К автомобилю →</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-secondary">Нет отзывов</div>
+    {% endif %}
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <p>© 2026 Drive4 — дипломный проект</p>
+    </div>
+</footer>
+
 </body>
 </html>

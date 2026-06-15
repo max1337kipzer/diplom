@@ -58,14 +58,23 @@ def add_review(request, car_id):
 
 
 def search(request):
-    query = request.GET.get('q', '')
-    cars = Car.objects.filter(
-        models.Q(brand__name__icontains=query) |
-        models.Q(model__name__icontains=query) |
-        models.Q(owner__username__icontains=query) |
-        models.Q(color__icontains=query)
-    )
-    return render(request, 'garage/search.html', {'cars': cars, 'query': query})
+    """Поиск автомобилей по марке, модели или владельцу"""
+    query = request.GET.get('q', '').strip()
+    if query:
+        cars = Car.objects.filter(
+            models.Q(brand__name__icontains=query) |
+            models.Q(model__name__icontains=query) |
+            models.Q(owner__username__icontains=query)
+        ).select_related('brand', 'model', 'owner')
+    else:
+        cars = Car.objects.none()
+    
+    context = {
+        'cars': cars,
+        'query': query,
+        'count': cars.count(),
+    }
+    return render(request, 'garage/search.html', context)
 
 
 @login_required
