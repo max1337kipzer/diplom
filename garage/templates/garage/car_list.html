@@ -23,43 +23,29 @@
             color: #1a202c;
             text-decoration: none;
         }
-        .navbar-brand:hover {
-            color: #3182ce;
-        }
         .nav-link {
             color: #4a5568;
             font-weight: 500;
-            transition: color 0.2s;
-        }
-        .nav-link:hover {
-            color: #3182ce;
         }
         .btn-logout {
             background: none;
             border: none;
             color: #4a5568;
             cursor: pointer;
-            font-weight: 500;
         }
-        .btn-logout:hover {
-            color: #e53e3e;
-        }
-        
-        /* Секция с поиском (без градиента) */
-        .search-section {
+        .hero-section {
             background-color: white;
             border-bottom: 1px solid #e2e8f0;
             padding: 2rem 0;
             text-align: center;
             margin-bottom: 2rem;
         }
-        .search-section h1 {
+        .hero-section h1 {
             font-size: 2rem;
             font-weight: 700;
-            color: #1a202c;
             margin-bottom: 0.5rem;
         }
-        .search-section p {
+        .hero-section p {
             color: #4a5568;
             margin-bottom: 1.5rem;
         }
@@ -78,19 +64,26 @@
             background-color: #3182ce;
             color: white;
             border: none;
-            font-weight: 500;
         }
-        .search-form button:hover {
-            background-color: #2c5282;
+        .stats-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
         }
-        
-        /* Карточки */
+        .stats-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #3182ce;
+        }
         .car-card {
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 16px;
             overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
             margin-bottom: 1.5rem;
             height: 100%;
         }
@@ -98,10 +91,13 @@
             transform: translateY(-4px);
             box-shadow: 0 12px 20px rgba(0,0,0,0.1);
         }
-        .car-image {
-            height: 180px;
-            object-fit: cover;
+        /* ФИКСИРОВАННЫЙ СТИЛЬ ДЛЯ ФОТО - НЕ ВЫЛЕЗАЮТ ЗА РАМКУ */
+        .car-card .car-img-top {
             width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #f8f9fa;
+            display: block;
         }
         .car-card .card-body {
             padding: 1rem;
@@ -126,26 +122,6 @@
             font-size: 0.85rem;
             width: 100%;
         }
-        
-        /* Статистика */
-        .stats-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 1rem;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .stats-number {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #3182ce;
-        }
-        .stats-label {
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-        
         .footer {
             background: white;
             border-top: 1px solid #e2e8f0;
@@ -154,24 +130,11 @@
             margin-top: 2rem;
             color: #a0aec0;
         }
-        
         @media (max-width: 768px) {
-            .search-section h1 {
-                font-size: 1.5rem;
-            }
-            .car-image {
-                height: 140px;
+            .car-card .car-img-top {
+                height: 150px;
             }
         }
-        /* Рамка для фото на главной странице */
-.car-image {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 12px 12px 0 0;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e2e8f0;
-}
     </style>
 </head>
 <body>
@@ -196,14 +159,14 @@
     </div>
 </nav>
 
-<!-- СЕКЦИЯ С ПОИСКОМ ПО ЦЕНТРУ (БЕЗ ГРАДИЕНТА) -->
-<div class="search-section">
+<!-- ГЕРОЙ С ПОИСКОМ -->
+<div class="hero-section">
     <div class="container">
-        <h1><i class=""></i> Drive4</h1>
-        
+        <h1><i class="fas fa-car"></i> Drive4</h1>
+        <p>Сообщество автолюбителей — каталог, отзывы, сравнение</p>
         <form method="get" action="{% url 'search' %}" class="search-form">
             <div class="input-group">
-                <input type="text" name="q" class="form-control" placeholder="Поиск по марке, модели или владельцу..." aria-label="Поиск">
+                <input type="text" name="q" class="form-control" placeholder="Поиск по марке, модели или владельцу...">
                 <button class="btn" type="submit"><i class="fas fa-search"></i> Найти</button>
             </div>
         </form>
@@ -211,7 +174,7 @@
 </div>
 
 <div class="container">
-    <!-- СТАТИСТИКА КОЛИЧЕСТВА АВТОМОБИЛЕЙ -->
+    <!-- СТАТИСТИКА -->
     <div class="row justify-content-center">
         <div class="col-md-4">
             <div class="stats-card">
@@ -227,9 +190,9 @@
             <div class="col-md-6 col-lg-4">
                 <div class="car-card">
                     {% if car.photo %}
-                        <img src="{{ car.photo.url }}" class="car-image" alt="{{ car.brand.name }} {{ car.model.name }}">
+                        <img src="{{ car.photo.url }}" style="width: 100%; height: 200px; object-fit: cover;" alt="{{ car.brand.name }} {{ car.model.name }}">
                     {% else %}
-                        <div class="car-image bg-light d-flex align-items-center justify-content-center">
+                        <div class="car-img-top bg-light d-flex align-items-center justify-content-center">
                             <i class="fas fa-car fa-3x text-muted"></i>
                         </div>
                     {% endif %}
